@@ -3,57 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Stok Cloud Sync</title>
+    <title>Sistem Stok Cloud - Format MM/DD/YYYY</title>
     <style>
-        /* (Gunakan CSS yang sama seperti sebelumnya agar tampilan tetap bagus) */
-        :root { --primary: #4a90e2; --success: #27ae60; --danger: #e74c3c; --bg: #f8fafc; --dark: #1e293b; }
+        :root {
+            --primary: #4a90e2;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f8fafc;
+            --dark: #1e293b;
+        }
+
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .container { max-width: 950px; margin: auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        
         .tabs { display: flex; background: var(--dark); padding: 5px; }
         .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #94a3b8; cursor: pointer; font-size: 15px; font-weight: 600; border-radius: 10px; }
         .tab-btn.active { background: var(--primary); color: white; }
+
         .content { padding: 30px; display: none; }
         .content.active { display: block; }
+
         .grid-forms { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; }
         input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .search-box { 
+            width: 100%; 
+            padding: 10px 15px; 
+            margin-bottom: 15px; 
+            border: 2px solid var(--primary); 
+            border-radius: 8px; 
+            font-size: 14px;
+            outline: none;
+        }
+
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .btn-in { background: var(--success); color: white; }
         .btn-out { background: var(--danger); color: white; }
+        .btn-export { background: #64748b; color: white; width: auto; padding: 10px 20px; }
+        
+        .toast { display: none; margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 13px; }
+        .toast-success { background: #dcfce7; color: #166534; }
+        .toast-error { background: #fee2e2; color: #991b1b; }
+
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
         .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
         .bg-blue { background: #4a90e2; }
         .bg-green { background: #27ae60; }
         .bg-red { background: #e74c3c; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-        .toast { display: none; margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #f1f5f9; font-size: 12px; text-transform: uppercase; color: #64748b; }
+        .history-in { color: var(--success); font-weight: bold; }
+        .history-out { color: var(--danger); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'input-tab')">📥 Input (Cloud)</button>
-        <button class="tab-btn" onclick="openTab(event, 'dashboard-tab')">📊 Dashboard Sinkron</button>
+        <button class="tab-btn active" onclick="openTab(event, 'input-tab')">📥 Input & Output</button>
+        <button class="tab-btn" onclick="openTab(event, 'dashboard-tab')">📊 Dashboard & Laporan</button>
     </div>
 
     <div id="input-tab" class="content active">
         <div class="grid-forms">
             <div class="card">
-                <h3>+ Barang Masuk</h3>
-                <input type="text" id="inNama" placeholder="Nama Barang">
+                <h3 style="color: var(--success); margin-top:0;">+ Stok Masuk</h3>
+                <input type="text" id="inNama" list="datalistBarang" placeholder="Manufacture barcode">
                 <input type="number" id="inQty" placeholder="Jumlah">
-                <button class="btn-in" onclick="proses(true)">INPUT</button>
+                <button class="btn-in" onclick="proses(true)">Input</button>
                 <div id="msg-in" class="toast"></div>
             </div>
             <div class="card">
-                <h3>- Barang Keluar</h3>
-                <input type="text" id="outNama" placeholder="Nama Barang">
+                <h3 style="color: var(--danger); margin-top:0;">- Stok Keluar</h3>
+                <input type="text" id="outNama" list="datalistBarang" placeholder="Manufacture barcode">
                 <input type="number" id="outQty" placeholder="Jumlah">
-                <button class="btn-out" onclick="proses(false)">OUTPUT</button>
+                <button class="btn-out" onclick="proses(false)">Output</button>
                 <div id="msg-out" class="toast"></div>
             </div>
+        </div>
+
+        <datalist id="datalistBarang"></datalist>
+
+        <div style="margin-top: 30px; display: flex; gap: 10px;">
+            <button onclick="exportCSV()" class="btn-export">📥 Download Laporan (CSV)</button>
+            <button onclick="hapusData()" style="background: #cbd5e1; color: #475569; width: auto; padding: 10px 20px;">Reset Database</button>
         </div>
     </div>
 
@@ -61,24 +97,40 @@
         <div class="stats-grid">
             <div class="stat-card bg-blue"><small>Jenis</small><p id="countJenis">0</p></div>
             <div class="stat-card bg-green"><small>Total Stok</small><p id="countTotal">0</p></div>
-            <div class="stat-card bg-red"><small>Log</small><p id="countLog">0</p></div>
+            <div class="stat-card bg-red"><small>Total Transaksi</small><p id="countLog">0</p></div>
         </div>
-        <h3>📦 Stok Real-time</h3>
+
+        <h3>📦 Stok Aktif Saat Ini</h3>
+        <input type="text" id="searchBarang" class="search-box" placeholder="🔍 Cari MB..." onkeyup="filterTabel()">
+
         <table id="tabelStok">
-            <thead><tr><th>Nama Barang</th><th>Stok</th></tr></thead>
+            <thead><tr><th>Manufacture barcode</th><th>Jumlah</th></tr></thead>
+            <tbody></tbody>
+        </table>
+
+        <h3 style="margin-top:30px;">🕒 Riwayat Aktivitas</h3>
+        <table id="tabelLog">
+            <thead><tr><th>Waktu (MM/DD/YYYY)</th><th>Barang</th><th>Tipe</th><th>Qty</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // GANTI URL INI dengan URL Firebase kamu sendiri!
+    // MASUKKAN URL FIREBASE KAMU DI SINI
     const FIREBASE_URL = "https://bti-stock-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
     let dbStok = {};
     let dbLog = [];
 
-    // Fungsi Ambil Data dari Cloud
+    function showToast(id, message, isError = false) {
+        const el = document.getElementById(id);
+        el.innerText = message;
+        el.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
     async function loadFromCloud() {
         try {
             const res = await fetch(FIREBASE_URL);
@@ -91,7 +143,6 @@
         } catch (e) { console.error("Gagal sinkron:", e); }
     }
 
-    // Fungsi Simpan ke Cloud
     async function saveToCloud() {
         await fetch(FIREBASE_URL, {
             method: 'PUT',
@@ -107,44 +158,93 @@
         loadFromCloud();
     }
 
+    function filterTabel() {
+        const input = document.getElementById('searchBarang').value.toLowerCase();
+        const rows = document.querySelector('#tabelStok tbody').getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+            let namaBarang = rows[i].getElementsByTagName('td')[0].innerText.toLowerCase();
+            rows[i].style.display = namaBarang.includes(input) ? "" : "none";
+        }
+    }
+
     async function proses(isMasuk) {
         const pfx = isMasuk ? 'in' : 'out';
+        const msgId = isMasuk ? 'msg-in' : 'msg-out';
         const nama = document.getElementById(pfx + 'Nama').value.trim();
         const qty = parseInt(document.getElementById(pfx + 'Qty').value);
+        
+        // FORMAT WAKTU BARU: MM/DD/YYYY HH:mm
+        const d = new Date();
+        const formatTgl = (val) => val.toString().padStart(2, '0');
+        const waktuCustom = `${formatTgl(d.getMonth() + 1)}/${formatTgl(d.getDate())}/${d.getFullYear()} ${formatTgl(d.getHours())}:${formatTgl(d.getMinutes())}`;
 
-        if (!nama || isNaN(qty)) return;
+        if (!nama || isNaN(qty) || qty <= 0) {
+            showToast(msgId, "Data tidak valid!", true);
+            return;
+        }
 
         if (isMasuk) {
             dbStok[nama] = (dbStok[nama] || 0) + qty;
-            dbLog.unshift({ nama, tipe: 'MASUK', qty: qty });
+            dbLog.unshift({ waktu: waktuCustom, nama, tipe: 'in', qty: '+' + qty, cls: 'history-in' });
+            showToast(msgId, "Berhasil disimpan ke Cloud!");
         } else {
-            if (!dbStok[nama] || dbStok[nama] < qty) return alert("Stok kurang!");
+            if (!dbStok[nama] || dbStok[nama] < qty) {
+                showToast(msgId, "Stok tidak cukup!", true);
+                return;
+            }
             dbStok[nama] -= qty;
-            dbLog.unshift({ nama, tipe: 'KELUAR', qty: qty });
+            dbLog.unshift({ waktu: waktuCustom, nama, tipe: 'out', qty: '-' + qty, cls: 'history-out' });
+            showToast(msgId, "Berhasil update Cloud!");
         }
 
         await saveToCloud();
         document.getElementById(pfx + 'Nama').value = '';
         document.getElementById(pfx + 'Qty').value = '';
-        loadFromCloud();
+        updateUI();
     }
 
     function updateUI() {
-        const tbody = document.querySelector('#tabelStok tbody');
-        tbody.innerHTML = '';
+        const tStok = document.querySelector('#tabelStok tbody');
+        const tLog = document.querySelector('#tabelLog tbody');
+        const dList = document.getElementById('datalistBarang');
+        tStok.innerHTML = ''; tLog.innerHTML = ''; dList.innerHTML = '';
+        
         let total = 0, jenis = 0;
         for (let n in dbStok) {
             if (dbStok[n] > 0) {
                 jenis++; total += dbStok[n];
-                tbody.innerHTML += `<tr><td>${n}</td><td>${dbStok[n]}</td></tr>`;
+                tStok.innerHTML += `<tr><td><strong>${n}</strong></td><td>${dbStok[n]} pcs</td></tr>`;
+                dList.innerHTML += `<option value="${n}">`;
             }
         }
+        dbLog.slice(0, 30).forEach(l => {
+            tLog.innerHTML += `<tr><td>${l.waktu}</td><td>${l.nama}</td><td>${l.tipe}</td><td class="${l.cls}">${l.qty}</td></tr>`;
+        });
         document.getElementById('countJenis').innerText = jenis;
         document.getElementById('countTotal').innerText = total;
         document.getElementById('countLog').innerText = dbLog.length;
+        filterTabel();
     }
 
-    // Ambil data setiap kali aplikasi dibuka
+    function exportCSV() {
+        let csv = "Waktu,Barang,Tipe,Jumlah\n";
+        dbLog.forEach(l => { csv += `${l.waktu},${l.nama},${l.tipe},${l.qty}\n`; });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'laporan_stok_standard.csv');
+        a.click();
+    }
+
+    async function hapusData() {
+        if(confirm("Hapus semua data di Cloud secara permanen?")) {
+            dbStok = {}; dbLog = [];
+            await saveToCloud();
+            updateUI();
+        }
+    }
+
     loadFromCloud();
 </script>
 </body>
