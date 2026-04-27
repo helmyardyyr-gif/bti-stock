@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Stok Cloud Sync</title>
+    <style>
+        /* (Gunakan CSS yang sama seperti sebelumnya agar tampilan tetap bagus) */
+        :root { --primary: #4a90e2; --success: #27ae60; --danger: #e74c3c; --bg: #f8fafc; --dark: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .tabs { display: flex; background: var(--dark); padding: 5px; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #94a3b8; cursor: pointer; font-size: 15px; font-weight: 600; border-radius: 10px; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .content { padding: 30px; display: none; }
+        .content.active { display: block; }
+        .grid-forms { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; }
+        input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-in { background: var(--success); color: white; }
+        .btn-out { background: var(--danger); color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
+        .bg-blue { background: #4a90e2; }
+        .bg-green { background: #27ae60; }
+        .bg-red { background: #e74c3c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .toast { display: none; margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'input-tab')">📥 Input (Cloud)</button>
+        <button class="tab-btn" onclick="openTab(event, 'dashboard-tab')">📊 Dashboard Sinkron</button>
+    </div>
+
+    <div id="input-tab" class="content active">
+        <div class="grid-forms">
+            <div class="card">
+                <h3>+ Barang Masuk</h3>
+                <input type="text" id="inNama" placeholder="Nama Barang">
+                <input type="number" id="inQty" placeholder="Jumlah">
+                <button class="btn-in" onclick="proses(true)">Simpan ke Cloud</button>
+                <div id="msg-in" class="toast"></div>
+            </div>
+            <div class="card">
+                <h3>- Barang Keluar</h3>
+                <input type="text" id="outNama" placeholder="Nama Barang">
+                <input type="number" id="outQty" placeholder="Jumlah">
+                <button class="btn-out" onclick="proses(false)">Update Cloud</button>
+                <div id="msg-out" class="toast"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-tab" class="content">
+        <div class="stats-grid">
+            <div class="stat-card bg-blue"><small>Jenis</small><p id="countJenis">0</p></div>
+            <div class="stat-card bg-green"><small>Total Stok</small><p id="countTotal">0</p></div>
+            <div class="stat-card bg-red"><small>Log</small><p id="countLog">0</p></div>
+        </div>
+        <h3>📦 Stok Real-time</h3>
+        <table id="tabelStok">
+            <thead><tr><th>Nama Barang</th><th>Stok</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // GANTI URL INI dengan URL Firebase kamu sendiri!
+    const FIREBASE_URL = "https://bti-stock-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
+
+    let dbStok = {};
+    let dbLog = [];
+
+    // Fungsi Ambil Data dari Cloud
+    async function loadFromCloud() {
+        try {
+            const res = await fetch(FIREBASE_URL);
+            const data = await res.json();
+            if (data) {
+                dbStok = data.stok || {};
+                dbLog = data.log || [];
+                updateUI();
+            }
+        } catch (e) { console.error("Gagal sinkron:", e); }
+    }
+
+    // Fungsi Simpan ke Cloud
+    async function saveToCloud() {
+        await fetch(FIREBASE_URL, {
+            method: 'PUT',
+            body: JSON.stringify({ stok: dbStok, log: dbLog })
+        });
+    }
+
+    function openTab(evt, tabName) {
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        evt.currentTarget.classList.add('active');
+        loadFromCloud();
+    }
+
+    async function proses(isMasuk) {
+        const pfx = isMasuk ? 'in' : 'out';
+        const nama = document.getElementById(pfx + 'Nama').value.trim();
+        const qty = parseInt(document.getElementById(pfx + 'Qty').value);
+
+        if (!nama || isNaN(qty)) return;
+
+        if (isMasuk) {
+            dbStok[nama] = (dbStok[nama] || 0) + qty;
+            dbLog.unshift({ nama, tipe: 'MASUK', qty: qty });
+        } else {
+            if (!dbStok[nama] || dbStok[nama] < qty) return alert("Stok kurang!");
+            dbStok[nama] -= qty;
+            dbLog.unshift({ nama, tipe: 'KELUAR', qty: qty });
+        }
+
+        await saveToCloud();
+        document.getElementById(pfx + 'Nama').value = '';
+        document.getElementById(pfx + 'Qty').value = '';
+        loadFromCloud();
+    }
+
+    function updateUI() {
+        const tbody = document.querySelector('#tabelStok tbody');
+        tbody.innerHTML = '';
+        let total = 0, jenis = 0;
+        for (let n in dbStok) {
+            if (dbStok[n] > 0) {
+                jenis++; total += dbStok[n];
+                tbody.innerHTML += `<tr><td>${n}</td><td>${dbStok[n]}</td></tr>`;
+            }
+        }
+        document.getElementById('countJenis').innerText = jenis;
+        document.getElementById('countTotal').innerText = total;
+        document.getElementById('countLog').innerText = dbLog.length;
+    }
+
+    // Ambil data setiap kali aplikasi dibuka
+    loadFromCloud();
+</script>
+</body>
+</html>
