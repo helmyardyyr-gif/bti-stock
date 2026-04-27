@@ -14,7 +14,7 @@
         }
 
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 950px; margin: auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .container { max-width: 1000px; margin: auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         
         .tabs { display: flex; background: var(--dark); padding: 5px; }
         .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #94a3b8; cursor: pointer; font-size: 15px; font-weight: 600; border-radius: 10px; }
@@ -25,19 +25,15 @@
 
         .grid-forms { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; }
-        input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; }
+        label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #64748b; }
+        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 14px; }
         
         .search-box { 
-            width: 100%; 
-            padding: 10px 15px; 
-            margin-bottom: 15px; 
-            border: 2px solid var(--primary); 
-            border-radius: 8px; 
-            font-size: 14px;
-            outline: none;
+            width: 100%; padding: 12px 15px; margin-bottom: 15px; 
+            border: 2px solid var(--primary); border-radius: 8px; outline: none;
         }
 
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-in { background: var(--success); color: white; }
         .btn-out { background: var(--danger); color: white; }
         .btn-export { background: #64748b; color: white; width: auto; padding: 10px 20px; }
@@ -53,8 +49,9 @@
         .bg-red { background: #e74c3c; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
-        th { background: #f1f5f9; font-size: 12px; text-transform: uppercase; color: #64748b; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 13px; }
+        th { background: #f1f5f9; text-transform: uppercase; color: #64748b; font-size: 11px; }
+        .badge-loc { background: #e0f2fe; padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #0369a1; font-weight: bold; }
         .history-in { color: var(--success); font-weight: bold; }
         .history-out { color: var(--danger); font-weight: bold; }
     </style>
@@ -63,7 +60,7 @@
 
 <div class="container">
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'input-tab')">📥 Input & Output</button>
+        <button class="tab-btn active" onclick="openTab(event, 'input-tab')">📥 Manajemen Stok</button>
         <button class="tab-btn" onclick="openTab(event, 'dashboard-tab')">📊 Dashboard & Laporan</button>
     </div>
 
@@ -71,65 +68,63 @@
         <div class="grid-forms">
             <div class="card">
                 <h3 style="color: var(--success); margin-top:0;">+ Stok Masuk</h3>
-                <input type="text" id="inNama" list="datalistBarang" placeholder="Manufacture barcode">
-                <input type="number" id="inQty" placeholder="Jumlah">
+                <label>Barcode</label>
+                <input type="text" id="inNama" list="listNama" placeholder="Manufacture barcode...">
+                <label>Lokasi Penyimpanan</label>
+                <input type="text" id="inLokasi" list="listLokasi" placeholder="Ketik lokasi...">
+                <label>Jumlah</label>
+                <input type="number" id="inQty" placeholder="0">
                 <button class="btn-in" onclick="proses(true)">Input</button>
                 <div id="msg-in" class="toast"></div>
             </div>
+
             <div class="card">
                 <h3 style="color: var(--danger); margin-top:0;">- Stok Keluar</h3>
-                <input type="text" id="outNama" list="datalistBarang" placeholder="Manufacture barcode">
-                <input type="number" id="outQty" placeholder="Jumlah">
+                <label>Barcode</label>
+                <input type="text" id="outNama" list="listNama" placeholder="Manufacture barcode...">
+                <label>Lokasi Pengambilan</label>
+                <input type="text" id="outLokasi" list="listLokasi" placeholder="Ketik lokasi asal...">
+                <label>Jumlah</label>
+                <input type="number" id="outQty" placeholder="0">
                 <button class="btn-out" onclick="proses(false)">Output</button>
                 <div id="msg-out" class="toast"></div>
             </div>
         </div>
 
-        <datalist id="datalistBarang"></datalist>
+        <datalist id="listNama"></datalist>
+        <datalist id="listLokasi"></datalist>
 
         <div style="margin-top: 30px; display: flex; gap: 10px;">
-            <button onclick="exportCSV()" class="btn-export">📥 Download Laporan (CSV)</button>
+            <button onclick="exportCSV()" class="btn-export">📥 Download CSV</button>
             <button onclick="hapusData()" style="background: #cbd5e1; color: #475569; width: auto; padding: 10px 20px;">Reset Database</button>
         </div>
     </div>
 
     <div id="dashboard-tab" class="content">
         <div class="stats-grid">
-            <div class="stat-card bg-blue"><small>Jenis</small><p id="countJenis">0</p></div>
-            <div class="stat-card bg-green"><small>Total Stok</small><p id="countTotal">0</p></div>
-            <div class="stat-card bg-red"><small>Total Transaksi</small><p id="countLog">0</p></div>
+            <div class="stat-card bg-blue"><small>Jenis/Posisi</small><p id="countJenis">0</p></div>
+            <div class="stat-card bg-green"><small>Total Unit</small><p id="countTotal">0</p></div>
+            <div class="stat-card bg-red"><small>Riwayat</small><p id="countLog">0</p></div>
         </div>
-
-        <h3>📦 Stok Aktif Saat Ini</h3>
-        <input type="text" id="searchBarang" class="search-box" placeholder="🔍 Cari MB..." onkeyup="filterTabel()">
-
+        <h3>📦 Stok Aktif</h3>
+        <input type="text" id="searchBarang" class="search-box" placeholder="🔍 Cari Manufacture barcode atau lokasi..." onkeyup="filterTabel()">
         <table id="tabelStok">
-            <thead><tr><th>Manufacture barcode</th><th>Jumlah</th></tr></thead>
+            <thead><tr><th>Manufacture barcode</th><th>Lokasi</th><th>Jumlah</th></tr></thead>
             <tbody></tbody>
         </table>
-
         <h3 style="margin-top:30px;">🕒 Riwayat Aktivitas</h3>
         <table id="tabelLog">
-            <thead><tr><th>Waktu (MM/DD/YYYY)</th><th>Barang</th><th>Tipe</th><th>Qty</th></tr></thead>
+            <thead><tr><th>Waktu (MM/DD/YYYY)</th><th>Barang</th><th>Lokasi</th><th>Tipe</th><th>Qty</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // MASUKKAN URL FIREBASE KAMU DI SINI
     const FIREBASE_URL = "https://bti-stock-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
-    let dbStok = {};
+    let dbStok = {}; 
     let dbLog = [];
-
-    function showToast(id, message, isError = false) {
-        const el = document.getElementById(id);
-        el.innerText = message;
-        el.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
-        el.style.display = 'block';
-        setTimeout(() => { el.style.display = 'none'; }, 3000);
-    }
 
     async function loadFromCloud() {
         try {
@@ -140,7 +135,7 @@
                 dbLog = data.log || [];
                 updateUI();
             }
-        } catch (e) { console.error("Gagal sinkron:", e); }
+        } catch (e) { console.error(e); }
     }
 
     async function saveToCloud() {
@@ -148,6 +143,14 @@
             method: 'PUT',
             body: JSON.stringify({ stok: dbStok, log: dbLog })
         });
+    }
+
+    function showToast(id, message, isError = false) {
+        const el = document.getElementById(id);
+        el.innerText = message;
+        el.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 3000);
     }
 
     function openTab(evt, tabName) {
@@ -158,91 +161,96 @@
         loadFromCloud();
     }
 
-    function filterTabel() {
-        const input = document.getElementById('searchBarang').value.toLowerCase();
-        const rows = document.querySelector('#tabelStok tbody').getElementsByTagName('tr');
-        for (let i = 0; i < rows.length; i++) {
-            let namaBarang = rows[i].getElementsByTagName('td')[0].innerText.toLowerCase();
-            rows[i].style.display = namaBarang.includes(input) ? "" : "none";
-        }
-    }
-
     async function proses(isMasuk) {
         const pfx = isMasuk ? 'in' : 'out';
         const msgId = isMasuk ? 'msg-in' : 'msg-out';
+        
         const nama = document.getElementById(pfx + 'Nama').value.trim();
+        const lokasi = document.getElementById(pfx + 'Lokasi').value.trim();
         const qty = parseInt(document.getElementById(pfx + 'Qty').value);
         
-        // FORMAT WAKTU BARU: MM/DD/YYYY HH:mm
-        const d = new Date();
-        const formatTgl = (val) => val.toString().padStart(2, '0');
-        const waktuCustom = `${formatTgl(d.getMonth() + 1)}/${formatTgl(d.getDate())}/${d.getFullYear()} ${formatTgl(d.getHours())}:${formatTgl(d.getMinutes())}`;
-
-        if (!nama || isNaN(qty) || qty <= 0) {
-            showToast(msgId, "Data tidak valid!", true);
+        if (!nama || !lokasi || isNaN(qty) || qty <= 0) {
+            showToast(msgId, "Harap isi Nama, Lokasi, dan Jumlah!", true);
             return;
         }
 
+        const d = new Date();
+        const f = (v) => v.toString().padStart(2, '0');
+        const waktu = `${f(d.getMonth()+1)}/${f(d.getDate())}/${d.getFullYear()} ${f(d.getHours())}:${f(d.getMinutes())}`;
+        const key = `${nama}@${lokasi}`;
+
         if (isMasuk) {
-            dbStok[nama] = (dbStok[nama] || 0) + qty;
-            dbLog.unshift({ waktu: waktuCustom, nama, tipe: 'in', qty: '+' + qty, cls: 'history-in' });
-            showToast(msgId, "Berhasil disimpan ke Cloud!");
+            if (!dbStok[key]) dbStok[key] = { nama, lokasi, qty: 0 };
+            dbStok[key].qty += qty;
+            dbLog.unshift({ waktu, nama, lokasi, tipe: 'in', qty: '+' + qty, cls: 'history-in' });
+            showToast(msgId, "Stok Masuk Berhasil!");
         } else {
-            if (!dbStok[nama] || dbStok[nama] < qty) {
-                showToast(msgId, "Stok tidak cukup!", true);
+            if (!dbStok[key] || dbStok[key].qty < qty) {
+                showToast(msgId, "Gagal! Stok di lokasi tersebut tidak ditemukan atau tidak cukup.", true);
                 return;
             }
-            dbStok[nama] -= qty;
-            dbLog.unshift({ waktu: waktuCustom, nama, tipe: 'out', qty: '-' + qty, cls: 'history-out' });
-            showToast(msgId, "Berhasil update Cloud!");
+            dbStok[key].qty -= qty;
+            dbLog.unshift({ waktu, nama, lokasi, tipe: 'out', qty: '-' + qty, cls: 'history-out' });
+            showToast(msgId, "Stok Keluar Berhasil!");
         }
 
         await saveToCloud();
-        document.getElementById(pfx + 'Nama').value = '';
-        document.getElementById(pfx + 'Qty').value = '';
+        document.querySelectorAll(`#input-tab input`).forEach(i => i.value = '');
         updateUI();
     }
 
     function updateUI() {
         const tStok = document.querySelector('#tabelStok tbody');
         const tLog = document.querySelector('#tabelLog tbody');
-        const dList = document.getElementById('datalistBarang');
-        tStok.innerHTML = ''; tLog.innerHTML = ''; dList.innerHTML = '';
+        const listNama = document.getElementById('listNama');
+        const listLokasi = document.getElementById('listLokasi');
         
-        let total = 0, jenis = 0;
-        for (let n in dbStok) {
-            if (dbStok[n] > 0) {
-                jenis++; total += dbStok[n];
-                tStok.innerHTML += `<tr><td><strong>${n}</strong></td><td>${dbStok[n]} pcs</td></tr>`;
-                dList.innerHTML += `<option value="${n}">`;
+        tStok.innerHTML = ''; tLog.innerHTML = ''; 
+        listNama.innerHTML = ''; listLokasi.innerHTML = '';
+
+        let total = 0, jenisPosisi = 0;
+        let setNama = new Set(), setLok = new Set();
+
+        const sortedKeys = Object.keys(dbStok).sort();
+        sortedKeys.forEach(key => {
+            if (dbStok[key].qty > 0) {
+                const item = dbStok[key];
+                jenisPosisi++; total += item.qty;
+                tStok.innerHTML += `<tr><td><strong>${item.nama}</strong></td><td><span class="badge-loc">${item.lokasi}</span></td><td>${item.qty} pcs</td></tr>`;
+                setNama.add(item.nama);
+                setLok.add(item.lokasi);
             }
-        }
-        dbLog.slice(0, 30).forEach(l => {
-            tLog.innerHTML += `<tr><td>${l.waktu}</td><td>${l.nama}</td><td>${l.tipe}</td><td class="${l.cls}">${l.qty}</td></tr>`;
         });
-        document.getElementById('countJenis').innerText = jenis;
+
+        dbLog.slice(0, 30).forEach(l => {
+            tLog.innerHTML += `<tr><td>${l.waktu}</td><td>${l.nama}</td><td><small>${l.lokasi}</small></td><td>${l.tipe}</td><td class="${l.cls}">${l.qty}</td></tr>`;
+        });
+
+        setNama.forEach(n => listNama.innerHTML += `<option value="${n}">`);
+        setLok.forEach(l => listLokasi.innerHTML += `<option value="${l}">`);
+        
+        document.getElementById('countJenis').innerText = jenisPosisi;
         document.getElementById('countTotal').innerText = total;
         document.getElementById('countLog').innerText = dbLog.length;
-        filterTabel();
+    }
+
+    function filterTabel() {
+        const input = document.getElementById('searchBarang').value.toLowerCase();
+        const rows = document.querySelector('#tabelStok tbody').getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].style.display = rows[i].innerText.toLowerCase().includes(input) ? "" : "none";
+        }
     }
 
     function exportCSV() {
-        let csv = "Waktu,Barang,Tipe,Jumlah\n";
-        dbLog.forEach(l => { csv += `${l.waktu},${l.nama},${l.tipe},${l.qty}\n`; });
+        let csv = "Waktu,Barang,Lokasi,Tipe,Jumlah\n";
+        dbLog.forEach(l => { csv += `${l.waktu},${l.nama},${l.lokasi},${l.tipe},${l.qty}\n`; });
         const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'laporan_stok_standard.csv');
-        a.click();
+        const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'laporan_stok.csv'; a.click();
     }
 
     async function hapusData() {
-        if(confirm("Hapus semua data di Cloud secara permanen?")) {
-            dbStok = {}; dbLog = [];
-            await saveToCloud();
-            updateUI();
-        }
+        if(confirm("Hapus semua data?")) { dbStok = {}; dbLog = []; await saveToCloud(); updateUI(); }
     }
 
     loadFromCloud();
