@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Stok Cloud Pro - v4.4 Final</title>
+    <title>Sistem Stok Cloud Pro - v4.5</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root { --primary: #4a90e2; --success: #27ae60; --danger: #e74c3c; --bg: #f8fafc; --dark: #1e293b; }
@@ -26,7 +26,6 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-excel { background: #166534; color: white; width: 100%; margin-top: 10px; }
         .btn-reset { background: #fee2e2; color: #ef4444; font-size: 12px; padding: 8px 15px; border: 1px solid #ef4444; border-radius: 8px; }
-        .btn-reset:hover { background: #ef4444; color: white; }
         .table-container { overflow-x: auto; background: white; border-radius: 12px; border: 1px solid #e2e8f0; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 13px; }
@@ -58,7 +57,7 @@
                 <label>MB</label><input type="text" id="inNama" list="listNama">
                 <label>Lokasi</label><input type="text" id="inLokasi" list="listLokasi">
                 <label>Jumlah</label><input type="number" id="inQty">
-                <button class="btn-in" onclick="prosesManual(true)">Input</button>
+                <button class="btn-in" onclick="prosesManual(true)">Simpan ke Cloud</button>
                 <div id="msg-in" class="toast"></div>
             </div>
             <div class="card">
@@ -66,16 +65,17 @@
                 <label>MB</label><input type="text" id="outNama" list="listNama">
                 <label>Lokasi Asal</label><input type="text" id="outLokasi" list="listLokasi">
                 <label>Jumlah</label><input type="number" id="outQty">
-                <button class="btn-out" onclick="prosesManual(false)">Output</button>
+                <button class="btn-out" onclick="prosesManual(false)">Kurangi Stok</button>
                 <div id="msg-out" class="toast"></div>
             </div>
         </div>
 
         <div class="card" style="margin-top: 20px; text-align: center; border: 2px dashed #cbd5e1;">
-            <h3>📦 Mass Upload Excel</h3>
+            <h3>📦 Mass Update Excel</h3>
+            <p style="font-size: 11px; color: #64748b;">(Gunakan angka minus untuk mengurangi stok, misal: -10)</p>
             <button class="btn-primary" style="background:#0ea5e9; margin-bottom:10px" onclick="downloadTemplate()">1. Download Template</button><br>
             <input type="file" id="excelFile" accept=".xlsx, .xls"><br>
-            <button class="btn-excel" onclick="uploadExcel()">2. Proses Data & Sinkronisasi</button>
+            <button class="btn-excel" onclick="uploadExcel()">2. Proses Update Massal</button>
             <div id="msg-bulk" class="toast"></div>
         </div>
         <datalist id="listNama"></datalist><datalist id="listLokasi"></datalist>
@@ -86,7 +86,6 @@
             <h3 style="margin: 0;">📊 Analisis Laporan</h3>
             <button class="btn-reset" onclick="resetDatabase()">⚠️ Reset Database</button>
         </div>
-        
         <div class="dashboard-row">
             <div><label>Mulai</label><input type="date" id="tglMulai"></div>
             <div><label>Selesai</label><input type="date" id="tglSelesai"></div>
@@ -94,74 +93,23 @@
             <div class="stat-card" style="border-color: var(--success);"><h4>Total Masuk</h4><p id="statMasuk">0</p></div>
             <div class="stat-card" style="border-color: var(--danger);"><h4>Total Keluar</h4><p id="statKeluar">0</p></div>
         </div>
-
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
             <h3>📦 Stok Aktif (<span id="txtPageStok">1</span>)</h3>
             <input type="text" id="txtCari" class="search-box" placeholder="🔍 Cari..." onkeyup="resetPagingStok()">
         </div>
-        
-        <div class="table-container"><table id="tabelStok"><thead><tr><th>MB</th><th>Lokasi</th><th>Qty</th></tr></thead><tbody></tbody></table></div>
-        <div class="pagination">
-            <button class="btn-page" onclick="changePage('stok', -1)" id="prevStok">Prev</button>
-            <button class="btn-page" onclick="changePage('stok', 1)" id="nextStok">Next</button>
-        </div>
-
+        <div class="table-container"><table id="tabelStok"><thead><tr><th>MB</th><th>Lokasi</th><th>Sisa</th></tr></thead><tbody></tbody></table></div>
+        <div class="pagination"><button class="btn-page" onclick="changePage('stok', -1)" id="prevStok">Prev</button><button class="btn-page" onclick="changePage('stok', 1)" id="nextStok">Next</button></div>
         <h3 style="margin-top: 40px;">🕒 Riwayat (<span id="txtPageLog">1</span>)</h3>
         <div class="table-container"><table id="tabelLog"><thead><tr><th>Waktu</th><th>MB</th><th>Lokasi</th><th>Tipe</th><th>Qty</th></tr></thead><tbody></tbody></table></div>
-        <div class="pagination">
-            <button class="btn-page" onclick="changePage('log', -1)" id="prevLog">Prev</button>
-            <button class="btn-page" onclick="changePage('log', 1)" id="nextLog">Next</button>
-        </div>
+        <div class="pagination"><button class="btn-page" onclick="changePage('log', -1)" id="prevLog">Prev</button><button class="btn-page" onclick="changePage('log', 1)" id="nextLog">Next</button></div>
     </div>
 </div>
 
 <script>
-    // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-k5sQTi1dEyZuEBQ3hOjKP6AY8wDCUJz9mMoO0c3s7y8apkGkZgjfmFMaKWdrwLLo8A/exec";
-    
     let dbStok = {}; let dbLog = [];
     let pStok = 1; let pLog = 1; const pLimit = 15;
 
-    // --- FITUR RESET ---
-    async function resetDatabase() {
-        const pass = prompt("Konfirmasi Reset: Ketik 'HAPUS' untuk mengosongkan semua data di Cloud.");
-        if (pass === "HAPUS") {
-            dbStok = {};
-            dbLog = [];
-            updateUI();
-            await syncToCloud();
-            alert("Database telah dikosongkan.");
-        } else if (pass !== null) {
-            alert("Kata kunci salah. Reset dibatalkan.");
-        }
-    }
-
-    // --- ANALISIS & TANGGAL ---
-    function hitungStatistik() {
-        const d1 = document.getElementById('tglMulai').value; 
-        const d2 = document.getElementById('tglSelesai').value;
-        if(!d1 || !d2) return alert("Pilih tanggal dulu!");
-        const s = new Date(d1); s.setHours(0,0,0,0);
-        const e = new Date(d2); e.setHours(23,59,59,999);
-        let tin = 0, tout = 0;
-        dbLog.forEach(l => {
-            const t = parseIntlDate(l.waktu);
-            if(t && t >= s && t <= e){
-                const q = parseInt(String(l.qty).replace(/[^\d]/g, ''));
-                if(String(l.qty).includes('+')) tin += q; else tout += q;
-            }
-        });
-        document.getElementById('statMasuk').innerText = tin + " Unit";
-        document.getElementById('statKeluar').innerText = tout + " Unit";
-    }
-
-    function parseIntlDate(str) {
-        if(!str) return null;
-        const p = str.split(' ')[0].split('/');
-        return p.length === 3 ? new Date(p[2], p[0]-1, p[1]) : null;
-    }
-
-    // --- SINKRONISASI CLOUD ---
     async function loadData() {
         if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_URL")) return;
         try {
@@ -176,11 +124,34 @@
         if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_URL")) return;
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ stok: dbStok, log: dbLog }) });
-            console.log("Sync Berhasil");
         } catch (e) { console.error("Gagal simpan!"); }
     }
 
-    // --- UI ENGINE ---
+    function hitungStatistik() {
+        const d1 = document.getElementById('tglMulai').value; 
+        const d2 = document.getElementById('tglSelesai').value;
+        if(!d1 || !d2) return alert("Pilih tanggal dulu!");
+        const s = new Date(d1); s.setHours(0,0,0,0);
+        const e = new Date(d2); e.setHours(23,59,59,999);
+        let tin = 0, tout = 0;
+        dbLog.forEach(l => {
+            const t = parseIntlDate(l.waktu);
+            if(t && t >= s && t <= e){
+                const qStr = String(l.qty).replace(/[^\d]/g, '');
+                const q = parseInt(qStr);
+                if(String(l.qty).includes('+')) tin += q; else tout += q;
+            }
+        });
+        document.getElementById('statMasuk').innerText = tin + " Unit";
+        document.getElementById('statKeluar').innerText = tout + " Unit";
+    }
+
+    function parseIntlDate(str) {
+        if(!str) return null;
+        const p = str.split(' ')[0].split('/');
+        return p.length === 3 ? new Date(p[2], p[0]-1, p[1]) : null;
+    }
+
     function updateUI() {
         const ts = document.querySelector('#tabelStok tbody'); ts.innerHTML = '';
         const keyword = document.getElementById('txtCari').value.toLowerCase();
@@ -227,6 +198,7 @@
         document.querySelectorAll(`#input-tab input:not([type="file"])`).forEach(i => i.value = '');
     }
 
+    // --- MASS UPDATE FIX (IN & OUT) ---
     function uploadExcel() {
         const f = document.getElementById('excelFile'); if(!f.files[0]) return;
         const reader = new FileReader();
@@ -234,26 +206,46 @@
             const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
             const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
             const w = `${new Date().getMonth()+1}/${new Date().getDate()}/${new Date().getFullYear()} ${new Date().getHours()}:${new Date().getMinutes()}`;
-            let count = 0;
+            let count = 0; let errorRows = 0;
+
             data.forEach(row => {
-                const n = row.Nama || row.nama; const l = row.Lokasi || row.lokasi; const q = parseInt(row.Jumlah || row.jumlah);
+                const n = (row.Nama || row.nama || "").toString().trim();
+                const l = (row.Lokasi || row.lokasi || "").toString().trim();
+                const q = parseInt(row.Jumlah || row.jumlah);
+                
                 if(n && l && !isNaN(q)) {
-                    const k = `${String(n).trim()}@${String(l).trim()}`;
-                    if(!dbStok[k]) dbStok[k] = {nama:String(n).trim(), lokasi:String(l).trim(), qty:0};
-                    dbStok[k].qty += q; dbLog.unshift({waktu:w, nama:String(n).trim(), lokasi:String(l).trim(), tipe:'mass-upload', qty:'+'+q});
-                    count++;
+                    const k = `${n}@${l}`;
+                    if(q > 0) { // TAMBAH STOK
+                        if(!dbStok[k]) dbStok[k] = {nama:n, lokasi:l, qty:0};
+                        dbStok[k].qty += q;
+                        dbLog.unshift({waktu:w, nama:n, lokasi:l, tipe:'bulk-in', qty:'+'+q});
+                        count++;
+                    } else if(q < 0) { // KURANG STOK
+                        const qAbs = Math.abs(q);
+                        if(dbStok[k] && dbStok[k].qty >= qAbs) {
+                            dbStok[k].qty -= qAbs;
+                            dbLog.unshift({waktu:w, nama:n, lokasi:l, tipe:'bulk-out', qty:'-'+qAbs});
+                            count++;
+                        } else { errorRows++; }
+                    }
                 }
             });
-            updateUI(); await syncToCloud(); showToast('msg-bulk', `Berhasil upload ${count} data!`);
+            updateUI(); await syncToCloud(); 
+            showToast('msg-bulk', `Berhasil: ${count}. Gagal (stok kurang): ${errorRows}`);
             f.value = '';
         };
         reader.readAsArrayBuffer(f.files[0]);
     }
 
     function downloadTemplate() {
-        const ws = XLSX.utils.aoa_to_sheet([["Nama", "Lokasi", "Jumlah"], ["Barang A", "Gudang", 100]]);
+        const ws = XLSX.utils.aoa_to_sheet([["Nama", "Lokasi", "Jumlah"], ["Barang A", "Gudang", 100], ["Barang B", "Rak A", -50]]);
         const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template");
-        XLSX.writeFile(wb, "Template_Stok.xlsx");
+        XLSX.writeFile(wb, "Template_Stok_v4.5.xlsx");
+    }
+
+    async function resetDatabase() {
+        const pass = prompt("Ketik 'HAPUS' untuk mengosongkan semua data.");
+        if (pass === "HAPUS") { dbStok = {}; dbLog = []; updateUI(); await syncToCloud(); alert("Direset!"); }
     }
 
     function resetPagingStok() { pStok = 1; updateUI(); }
