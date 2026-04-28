@@ -3,57 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Stok BTI - Cloud</title>
+    <title>Sistem Stok Cloud Pro - v4.4 Final</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --primary: #4a90e2;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --bg: #f8fafc;
-            --dark: #1e293b;
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        
+        :root { --primary: #4a90e2; --success: #27ae60; --danger: #e74c3c; --bg: #f8fafc; --dark: #1e293b; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #334155; }
+        .container { max-width: 1100px; margin: auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         .tabs { display: flex; background: var(--dark); padding: 5px; }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #94a3b8; cursor: pointer; font-size: 15px; font-weight: 600; border-radius: 10px; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #94a3b8; cursor: pointer; font-size: 15px; font-weight: 600; border-radius: 10px; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
-
         .content { padding: 30px; display: none; }
         .content.active { display: block; }
-
         .grid-forms { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; }
+        h3 { margin-top: 0; margin-bottom: 15px; font-size: 18px; color: var(--dark); }
         label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #64748b; }
         input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 14px; }
-        
-        .search-box { 
-            width: 100%; padding: 12px 15px; margin-bottom: 15px; 
-            border: 2px solid var(--primary); border-radius: 8px; outline: none;
-        }
-
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .btn-in { background: var(--success); color: white; }
-        .btn-out { background: var(--danger); color: white; }
-        .btn-export { background: #64748b; color: white; width: auto; padding: 10px 20px; }
-        
-        .toast { display: none; margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 13px; }
-        .toast-success { background: #dcfce7; color: #166534; }
-        .toast-error { background: #fee2e2; color: #991b1b; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
-        .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
-        .bg-blue { background: #4a90e2; }
-        .bg-green { background: #27ae60; }
-        .bg-red { background: #e74c3c; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .search-box { width: 100%; max-width: 300px; padding: 10px; border: 2px solid var(--primary); border-radius: 8px; margin-bottom: 15px; outline: none; }
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-in { background: var(--success); color: white; width: 100%; }
+        .btn-out { background: var(--danger); color: white; width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-excel { background: #166534; color: white; width: 100%; margin-top: 10px; }
+        .btn-reset { background: #fee2e2; color: #ef4444; font-size: 12px; padding: 8px 15px; border: 1px solid #ef4444; border-radius: 8px; }
+        .btn-reset:hover { background: #ef4444; color: white; }
+        .table-container { overflow-x: auto; background: white; border-radius: 12px; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 13px; }
-        th { background: #f1f5f9; text-transform: uppercase; color: #64748b; font-size: 11px; }
-        .badge-loc { background: #e0f2fe; padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #0369a1; font-weight: bold; }
-        .history-in { color: var(--success); font-weight: bold; }
-        .history-out { color: var(--danger); font-weight: bold; }
+        th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; }
+        .badge-loc { background: #e0f2fe; padding: 3px 8px; border-radius: 4px; font-size: 11px; color: #0369a1; font-weight: bold; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; }
+        .btn-page { padding: 6px 15px; background: #e2e8f0; color: #475569; font-size: 12px; border-radius: 5px; border:none; cursor:pointer;}
+        .dashboard-row { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; background: #f1f5f9; padding: 20px; border-radius: 12px; align-items: flex-end; }
+        .stat-card { background: white; padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); min-width: 150px; flex-grow: 1; }
+        .stat-card h4 { margin: 0; font-size: 11px; color: #64748b; }
+        .stat-card p { margin: 5px 0 0 0; font-size: 22px; font-weight: bold; }
+        .toast { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; }
+        .toast-success { background: #dcfce7; color: #166534; border: 1px solid #166534; }
+        .toast-error { background: #fee2e2; color: #991b1b; border: 1px solid #991b1b; }
     </style>
 </head>
 <body>
@@ -61,199 +48,220 @@
 <div class="container">
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab(event, 'input-tab')">📥 Manajemen Stok</button>
-        <button class="tab-btn" onclick="openTab(event, 'dashboard-tab')">📊 Dashboard & Laporan</button>
+        <button class="tab-btn" onclick="openTab(event, 'dashboard-tab')">📊 Laporan & Riwayat</button>
     </div>
 
     <div id="input-tab" class="content active">
         <div class="grid-forms">
             <div class="card">
-                <h3 style="color: var(--success); margin-top:0;">+ Stok Masuk</h3>
-                <label>Barcode</label>
-                <input type="text" id="inNama" list="listNama" placeholder="Manufacture barcode...">
-                <label>Lokasi Penyimpanan</label>
-                <input type="text" id="inLokasi" list="listLokasi" placeholder="Ketik lokasi...">
-                <label>Jumlah</label>
-                <input type="number" id="inQty" placeholder="0">
-                <button class="btn-in" onclick="proses(true)">Input</button>
+                <h3>📥 Stok Masuk</h3>
+                <label>Nama Barang</label><input type="text" id="inNama" list="listNama">
+                <label>Lokasi</label><input type="text" id="inLokasi" list="listLokasi">
+                <label>Jumlah</label><input type="number" id="inQty">
+                <button class="btn-in" onclick="prosesManual(true)">Simpan ke Cloud</button>
                 <div id="msg-in" class="toast"></div>
             </div>
-
             <div class="card">
-                <h3 style="color: var(--danger); margin-top:0;">- Stok Keluar</h3>
-                <label>Barcode</label>
-                <input type="text" id="outNama" list="listNama" placeholder="Manufacture barcode...">
-                <label>Lokasi Pengambilan</label>
-                <input type="text" id="outLokasi" list="listLokasi" placeholder="Ketik lokasi asal...">
-                <label>Jumlah</label>
-                <input type="number" id="outQty" placeholder="0">
-                <button class="btn-out" onclick="proses(false)">Output</button>
+                <h3>📤 Stok Keluar</h3>
+                <label>Nama Barang</label><input type="text" id="outNama" list="listNama">
+                <label>Lokasi Asal</label><input type="text" id="outLokasi" list="listLokasi">
+                <label>Jumlah</label><input type="number" id="outQty">
+                <button class="btn-out" onclick="prosesManual(false)">Kurangi Stok</button>
                 <div id="msg-out" class="toast"></div>
             </div>
         </div>
 
-        <datalist id="listNama"></datalist>
-        <datalist id="listLokasi"></datalist>
-
-        <div style="margin-top: 30px; display: flex; gap: 10px;">
-            <button onclick="exportCSV()" class="btn-export">📥 Download CSV</button>
-            <button onclick="hapusData()" style="background: #cbd5e1; color: #475569; width: auto; padding: 10px 20px;">Reset Database</button>
+        <div class="card" style="margin-top: 20px; text-align: center; border: 2px dashed #cbd5e1;">
+            <h3>📦 Mass Upload Excel</h3>
+            <button class="btn-primary" style="background:#0ea5e9; margin-bottom:10px" onclick="downloadTemplate()">1. Download Template</button><br>
+            <input type="file" id="excelFile" accept=".xlsx, .xls"><br>
+            <button class="btn-excel" onclick="uploadExcel()">2. Proses & Sinkronisasi Cloud</button>
+            <div id="msg-bulk" class="toast"></div>
         </div>
+        <datalist id="listNama"></datalist><datalist id="listLokasi"></datalist>
     </div>
 
     <div id="dashboard-tab" class="content">
-        <div class="stats-grid">
-            <div class="stat-card bg-blue"><small>Jenis/Posisi</small><p id="countJenis">0</p></div>
-            <div class="stat-card bg-green"><small>Total Unit</small><p id="countTotal">0</p></div>
-            <div class="stat-card bg-red"><small>Riwayat</small><p id="countLog">0</p></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">📊 Analisis Laporan</h3>
+            <button class="btn-reset" onclick="resetDatabase()">⚠️ Reset Database</button>
         </div>
-        <h3>📦 Stok Aktif</h3>
-        <input type="text" id="searchBarang" class="search-box" placeholder="🔍 Cari Manufacture barcode atau lokasi..." onkeyup="filterTabel()">
-        <table id="tabelStok">
-            <thead><tr><th>Manufacture barcode</th><th>Lokasi</th><th>Jumlah</th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <h3 style="margin-top:30px;">🕒 Riwayat Aktivitas</h3>
-        <table id="tabelLog">
-            <thead><tr><th>Waktu (MM/DD/YYYY)</th><th>Barang</th><th>Lokasi</th><th>Tipe</th><th>Qty</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        
+        <div class="dashboard-row">
+            <div><label>Mulai</label><input type="date" id="tglMulai"></div>
+            <div><label>Selesai</label><input type="date" id="tglSelesai"></div>
+            <button class="btn-primary" onclick="hitungStatistik()">Cek Laporan</button>
+            <div class="stat-card" style="border-color: var(--success);"><h4>Total Masuk</h4><p id="statMasuk">0</p></div>
+            <div class="stat-card" style="border-color: var(--danger);"><h4>Total Keluar</h4><p id="statKeluar">0</p></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <h3>📦 Stok Aktif (<span id="txtPageStok">1</span>)</h3>
+            <input type="text" id="txtCari" class="search-box" placeholder="🔍 Cari..." onkeyup="resetPagingStok()">
+        </div>
+        
+        <div class="table-container"><table id="tabelStok"><thead><tr><th>Nama</th><th>Lokasi</th><th>Sisa</th></tr></thead><tbody></tbody></table></div>
+        <div class="pagination">
+            <button class="btn-page" onclick="changePage('stok', -1)" id="prevStok">Prev</button>
+            <button class="btn-page" onclick="changePage('stok', 1)" id="nextStok">Next</button>
+        </div>
+
+        <h3 style="margin-top: 40px;">🕒 Riwayat (<span id="txtPageLog">1</span>)</h3>
+        <div class="table-container"><table id="tabelLog"><thead><tr><th>Waktu</th><th>Barang</th><th>Lokasi</th><th>Tipe</th><th>Qty</th></tr></thead><tbody></tbody></table></div>
+        <div class="pagination">
+            <button class="btn-page" onclick="changePage('log', -1)" id="prevLog">Prev</button>
+            <button class="btn-page" onclick="changePage('log', 1)" id="nextLog">Next</button>
+        </div>
     </div>
 </div>
 
 <script>
-    const FIREBASE_URL = "https://bti-stock-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
+    // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-k5sQTi1dEyZuEBQ3hOjKP6AY8wDCUJz9mMoO0c3s7y8apkGkZgjfmFMaKWdrwLLo8A/exec";
+    
+    let dbStok = {}; let dbLog = [];
+    let pStok = 1; let pLog = 1; const pLimit = 15;
 
-    let dbStok = {}; 
-    let dbLog = [];
+    // --- FITUR RESET ---
+    async function resetDatabase() {
+        const pass = prompt("Konfirmasi Reset: Ketik 'HAPUS' untuk mengosongkan semua data di Cloud.");
+        if (pass === "HAPUS") {
+            dbStok = {};
+            dbLog = [];
+            updateUI();
+            await syncToCloud();
+            alert("Database telah dikosongkan.");
+        } else if (pass !== null) {
+            alert("Kata kunci salah. Reset dibatalkan.");
+        }
+    }
 
-    async function loadFromCloud() {
+    // --- ANALISIS & TANGGAL ---
+    function hitungStatistik() {
+        const d1 = document.getElementById('tglMulai').value; 
+        const d2 = document.getElementById('tglSelesai').value;
+        if(!d1 || !d2) return alert("Pilih tanggal dulu!");
+        const s = new Date(d1); s.setHours(0,0,0,0);
+        const e = new Date(d2); e.setHours(23,59,59,999);
+        let tin = 0, tout = 0;
+        dbLog.forEach(l => {
+            const t = parseIntlDate(l.waktu);
+            if(t && t >= s && t <= e){
+                const q = parseInt(String(l.qty).replace(/[^\d]/g, ''));
+                if(String(l.qty).includes('+')) tin += q; else tout += q;
+            }
+        });
+        document.getElementById('statMasuk').innerText = tin + " Unit";
+        document.getElementById('statKeluar').innerText = tout + " Unit";
+    }
+
+    function parseIntlDate(str) {
+        if(!str) return null;
+        const p = str.split(' ')[0].split('/');
+        return p.length === 3 ? new Date(p[2], p[0]-1, p[1]) : null;
+    }
+
+    // --- SINKRONISASI CLOUD ---
+    async function loadData() {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_URL")) return;
         try {
-            const res = await fetch(FIREBASE_URL);
-            const data = await res.json();
-            if (data) {
-                dbStok = data.stok || {};
-                dbLog = data.log || [];
-                updateUI();
-            }
-        } catch (e) { console.error(e); }
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            dbStok = data.stok || {}; dbLog = data.log || [];
+            updateUI();
+        } catch (e) { console.error("Error tarik data:", e); }
     }
 
-    async function saveToCloud() {
-        await fetch(FIREBASE_URL, {
-            method: 'PUT',
-            body: JSON.stringify({ stok: dbStok, log: dbLog })
-        });
+    async function syncToCloud() {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_URL")) return;
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ stok: dbStok, log: dbLog }) });
+            console.log("Sync Berhasil");
+        } catch (e) { console.error("Gagal simpan!"); }
     }
 
-    function showToast(id, message, isError = false) {
-        const el = document.getElementById(id);
-        el.innerText = message;
-        el.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
-        el.style.display = 'block';
-        setTimeout(() => { el.style.display = 'none'; }, 3000);
-    }
-
-    function openTab(evt, tabName) {
-        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
-        evt.currentTarget.classList.add('active');
-        loadFromCloud();
-    }
-
-    async function proses(isMasuk) {
-        const pfx = isMasuk ? 'in' : 'out';
-        const msgId = isMasuk ? 'msg-in' : 'msg-out';
-        
-        const nama = document.getElementById(pfx + 'Nama').value.trim();
-        const lokasi = document.getElementById(pfx + 'Lokasi').value.trim();
-        const qty = parseInt(document.getElementById(pfx + 'Qty').value);
-        
-        if (!nama || !lokasi || isNaN(qty) || qty <= 0) {
-            showToast(msgId, "Harap isi Nama, Lokasi, dan Jumlah!", true);
-            return;
-        }
-
-        const d = new Date();
-        const f = (v) => v.toString().padStart(2, '0');
-        const waktu = `${f(d.getMonth()+1)}/${f(d.getDate())}/${d.getFullYear()} ${f(d.getHours())}:${f(d.getMinutes())}`;
-        const key = `${nama}@${lokasi}`;
-
-        if (isMasuk) {
-            if (!dbStok[key]) dbStok[key] = { nama, lokasi, qty: 0 };
-            dbStok[key].qty += qty;
-            dbLog.unshift({ waktu, nama, lokasi, tipe: 'in', qty: '+' + qty, cls: 'history-in' });
-            showToast(msgId, "Stok Masuk Berhasil!");
-        } else {
-            if (!dbStok[key] || dbStok[key].qty < qty) {
-                showToast(msgId, "Gagal! Stok di lokasi tersebut tidak ditemukan atau tidak cukup.", true);
-                return;
-            }
-            dbStok[key].qty -= qty;
-            dbLog.unshift({ waktu, nama, lokasi, tipe: 'out', qty: '-' + qty, cls: 'history-out' });
-            showToast(msgId, "Stok Keluar Berhasil!");
-        }
-
-        await saveToCloud();
-        document.querySelectorAll(`#input-tab input`).forEach(i => i.value = '');
-        updateUI();
-    }
-
+    // --- UI ENGINE ---
     function updateUI() {
-        const tStok = document.querySelector('#tabelStok tbody');
-        const tLog = document.querySelector('#tabelLog tbody');
-        const listNama = document.getElementById('listNama');
-        const listLokasi = document.getElementById('listLokasi');
-        
-        tStok.innerHTML = ''; tLog.innerHTML = ''; 
-        listNama.innerHTML = ''; listLokasi.innerHTML = '';
-
-        let total = 0, jenisPosisi = 0;
-        let setNama = new Set(), setLok = new Set();
-
-        const sortedKeys = Object.keys(dbStok).sort();
-        sortedKeys.forEach(key => {
-            if (dbStok[key].qty > 0) {
-                const item = dbStok[key];
-                jenisPosisi++; total += item.qty;
-                tStok.innerHTML += `<tr><td><strong>${item.nama}</strong></td><td><span class="badge-loc">${item.lokasi}</span></td><td>${item.qty} pcs</td></tr>`;
-                setNama.add(item.nama);
-                setLok.add(item.lokasi);
-            }
+        const ts = document.querySelector('#tabelStok tbody'); ts.innerHTML = '';
+        const keyword = document.getElementById('txtCari').value.toLowerCase();
+        const filteredStok = Object.values(dbStok).filter(i => i.qty > 0 && (i.nama.toLowerCase().includes(keyword) || i.lokasi.toLowerCase().includes(keyword))).sort((a,b) => a.nama.localeCompare(b.nama));
+        filteredStok.slice((pStok-1)*pLimit, pStok*pLimit).forEach(i => {
+            ts.innerHTML += `<tr><td><strong>${i.nama}</strong></td><td><span class="badge-loc">${i.lokasi}</span></td><td>${i.qty}</td></tr>`;
         });
+        document.getElementById('txtPageStok').innerText = `Hal ${pStok}`;
+        document.getElementById('nextStok').disabled = pStok >= Math.ceil(filteredStok.length/pLimit);
+        document.getElementById('prevStok').disabled = pStok === 1;
 
-        dbLog.slice(0, 30).forEach(l => {
-            tLog.innerHTML += `<tr><td>${l.waktu}</td><td>${l.nama}</td><td><small>${l.lokasi}</small></td><td>${l.tipe}</td><td class="${l.cls}">${l.qty}</td></tr>`;
+        const tl = document.querySelector('#tabelLog tbody'); tl.innerHTML = '';
+        dbLog.slice((pLog-1)*pLimit, pLog*pLimit).forEach(l => {
+            const color = l.qty.includes('+') ? '#27ae60' : '#e74c3c';
+            tl.innerHTML += `<tr><td><small>${l.waktu}</small></td><td>${l.nama}</td><td>${l.lokasi}</td><td>${l.tipe}</td><td style="color:${color}; font-weight:bold">${l.qty}</td></tr>`;
         });
+        document.getElementById('txtPageLog').innerText = `Hal ${pLog}`;
+        document.getElementById('nextLog').disabled = pLog >= Math.ceil(dbLog.length/pLimit);
+        document.getElementById('prevLog').disabled = pLog === 1;
 
-        setNama.forEach(n => listNama.innerHTML += `<option value="${n}">`);
-        setLok.forEach(l => listLokasi.innerHTML += `<option value="${l}">`);
-        
-        document.getElementById('countJenis').innerText = jenisPosisi;
-        document.getElementById('countTotal').innerText = total;
-        document.getElementById('countLog').innerText = dbLog.length;
+        const ln = document.getElementById('listNama'); const ll = document.getElementById('listLokasi');
+        ln.innerHTML = ''; ll.innerHTML = '';
+        const un = new Set(); const ul = new Set();
+        Object.values(dbStok).forEach(i => { if(i.nama){un.add(i.nama); ul.add(i.lokasi);}});
+        un.forEach(v => ln.innerHTML += `<option value="${v}">`);
+        ul.forEach(v => ll.innerHTML += `<option value="${v}">`);
     }
 
-    function filterTabel() {
-        const input = document.getElementById('searchBarang').value.toLowerCase();
-        const rows = document.querySelector('#tabelStok tbody').getElementsByTagName('tr');
-        for (let i = 0; i < rows.length; i++) {
-            rows[i].style.display = rows[i].innerText.toLowerCase().includes(input) ? "" : "none";
+    async function prosesManual(isM) {
+        const tag = isM ? 'in' : 'out';
+        const n = document.getElementById(tag+'Nama').value.trim();
+        const l = document.getElementById(tag+'Lokasi').value.trim();
+        const q = parseInt(document.getElementById(tag+'Qty').value);
+        if(!n || !l || isNaN(q) || q <= 0) return showToast('msg-'+tag, "Data salah!", true);
+        const k = `${n}@${l}`; const w = `${new Date().getMonth()+1}/${new Date().getDate()}/${new Date().getFullYear()} ${new Date().getHours()}:${new Date().getMinutes()}`;
+        if(isM) {
+            if(!dbStok[k]) dbStok[k] = {nama:n, lokasi:l, qty:0};
+            dbStok[k].qty += q; dbLog.unshift({waktu:w, nama:n, lokasi:l, tipe:'MASUK', qty:'+'+q});
+        } else {
+            if(!dbStok[k] || dbStok[k].qty < q) return showToast('msg-out', "Stok kurang!", true);
+            dbStok[k].qty -= q; dbLog.unshift({waktu:w, nama:n, lokasi:l, tipe:'KELUAR', qty:'-'+q});
         }
+        updateUI(); await syncToCloud(); showToast('msg-'+tag, "Berhasil!");
+        document.querySelectorAll(`#input-tab input:not([type="file"])`).forEach(i => i.value = '');
     }
 
-    function exportCSV() {
-        let csv = "Waktu,Barang,Lokasi,Tipe,Jumlah\n";
-        dbLog.forEach(l => { csv += `${l.waktu},${l.nama},${l.lokasi},${l.tipe},${l.qty}\n`; });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'laporan_stok.csv'; a.click();
+    function uploadExcel() {
+        const f = document.getElementById('excelFile'); if(!f.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+            const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+            const w = `${new Date().getMonth()+1}/${new Date().getDate()}/${new Date().getFullYear()} ${new Date().getHours()}:${new Date().getMinutes()}`;
+            let count = 0;
+            data.forEach(row => {
+                const n = row.Nama || row.nama; const l = row.Lokasi || row.lokasi; const q = parseInt(row.Jumlah || row.jumlah);
+                if(n && l && !isNaN(q)) {
+                    const k = `${String(n).trim()}@${String(l).trim()}`;
+                    if(!dbStok[k]) dbStok[k] = {nama:String(n).trim(), lokasi:String(l).trim(), qty:0};
+                    dbStok[k].qty += q; dbLog.unshift({waktu:w, nama:String(n).trim(), lokasi:String(l).trim(), tipe:'BULK', qty:'+'+q});
+                    count++;
+                }
+            });
+            updateUI(); await syncToCloud(); showToast('msg-bulk', `Berhasil upload ${count} data!`);
+            f.value = '';
+        };
+        reader.readAsArrayBuffer(f.files[0]);
     }
 
-    async function hapusData() {
-        if(confirm("Hapus semua data?")) { dbStok = {}; dbLog = []; await saveToCloud(); updateUI(); }
+    function downloadTemplate() {
+        const ws = XLSX.utils.aoa_to_sheet([["Nama", "Lokasi", "Jumlah"], ["Barang A", "Gudang", 100]]);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template");
+        XLSX.writeFile(wb, "Template_Stok.xlsx");
     }
 
-    loadFromCloud();
+    function resetPagingStok() { pStok = 1; updateUI(); }
+    function changePage(t, s) { if(t==='stok') pStok+=s; else pLog+=s; updateUI(); }
+    function showToast(id, m, err) { const e = document.getElementById(id); e.innerText = m; e.className = `toast ${err?'toast-error':'toast-success'}`; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
+    function openTab(evt, name) { document.querySelectorAll('.content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(name).classList.add('active'); evt.currentTarget.classList.add('active'); }
+
+    loadData();
 </script>
 </body>
 </html>
